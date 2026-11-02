@@ -1,46 +1,46 @@
-# Tradutor ZH→PT (offline)
+# Tradutor ZH→PT 2.0 (offline, qualidade máxima)
 
-Tradução simultânea de **mandarim falado → português** no Android, sem dados móveis.
-Otimizado para o **Samsung Galaxy A55**.
+Tradução simultânea de **mandarim falado → português do Brasil** no Android, sem dados móveis.
+Otimizado para o **Samsung Galaxy A55** (Exynos 1480, 8 GB).
 
-## Como funciona
-| Etapa | Tecnologia | Onde roda |
+## Arquitetura
+| Etapa | Modelo | Papel |
 |---|---|---|
-| Ouvir o mandarim | Vosk (modelo `small-cn-0.22`, embutido no APK) | 100% no celular |
-| Traduzir para português | Google ML Kit Translation | 100% no celular |
-| Falar a tradução (opcional) | Voz pt-BR do próprio Android | no celular |
+| 1. Ouvir (instantâneo) | Zipformer streaming zh (sherpa-onnx, int8) | legenda em chinês enquanto a pessoa fala |
+| 2. Reconhecer a frase | SenseVoice 2025 (sherpa-onnx, int8) | releitura da frase inteira, mais precisa |
+| 3a. Legenda rápida | Google ML Kit | português aproximado em tempo real (≈) |
+| 3b. Tradução final | **Tencent HY-MT1.5-1.8B** (llama.cpp, Q4_K_M) | modelo especializado em tradução do chinês; substitui a legenda rápida com a versão final |
 
-A legenda em português aparece **enquanto a pessoa fala** (frase parcial traduzida a cada ~0,45 s)
-e cada frase concluída vai para o histórico (chinês em cinza, português em negrito).
+Tudo roda no celular. O HY-MT recebe as duas frases anteriores como contexto, para manter pronomes e termos coerentes.
+Se o orador falar rápido demais e a fila do HY-MT passar de 3 frases, as frases novas ficam com a tradução do ML Kit, para a legenda não atrasar.
 
 ## Compilar (GitHub Actions)
 1. Crie um repositório no GitHub e envie todo o conteúdo desta pasta (incluindo `.github`).
-2. Vá em **Actions → Compilar APK** (roda sozinho a cada push, ou clique em *Run workflow*).
-3. Ao terminar, baixe o artefato **TradutorZH-PT-apk** e instale o `.apk` no A55
-   (permita "instalar apps desconhecidos" para o navegador/Arquivos).
+2. **Actions → Compilar APK** (roda a cada push ou por *Run workflow*). Leva ~15–25 min (compila o llama.cpp).
+3. Baixe o artefato **TradutorZH-PT-apk** e instale o `.apk` (~450 MB, já com os modelos de voz).
 
-O workflow baixa o modelo de voz e o coloca no APK automaticamente.
+## Primeiro uso — uma vez, no Wi-Fi
+1. Permita o microfone.
+2. **Baixar legenda rápida (ML Kit)**: ~60 MB.
+3. **Baixar tradutor HY-MT**: ~1,1 GB. Só baixa no Wi-Fi: se o Wi-Fi cair, o download para e continua de onde parou.
+   Alternativa: baixe no PC o arquivo `HY-MT1.5-1.8B-Q4_K_M.gguf` (huggingface.co/tencent/HY-MT1.5-1.8B-GGUF),
+   passe para o celular e toque em **Importar .gguf**.
+4. Depois disso, pode usar em modo avião.
 
-## Primeiro uso
-1. Abra o app e permita o microfone.
-2. **Uma única vez, conectado ao Wi-Fi**, toque em *Baixar pacote de tradução* (~60 MB).
-   O download é travado em *somente Wi-Fi* — o app nunca usa dados móveis.
-3. Depois disso, pode ativar o modo avião: tudo funciona offline.
+## Ajustes (botão "Ajustes")
+- **Reconhecimento de voz (recomendado)**: sinal limpo, sem AGC agressivo.
+- **Câmera – mic traseiro**: aponte o celular para quem fala (palestra, reunião).
+- **Bruto / Comunicação / Padrão**: alternativas para ambientes específicos.
+- **Microfone / entrada**: mic interno inferior/traseiro, fone com fio ou **lapela USB-C**. A lapela dá o melhor resultado com orador distante.
+- **Ganho digital** 1x–4x, com medidor de nível (o ideal é o meio da barra).
+- **Redutor de ruído**, **Falar tradução** (use com fones; o app pausa a escuta enquanto fala) e **HY-MT liga/desliga**.
 
-## Ajustes do microfone (botão "Mic")
-- **Reconhecimento de voz (recomendado)** – fonte de áudio que a Samsung entrega sem compressão/AGC pesado, ideal para reconhecimento.
-- **Câmera – mic traseiro** – usa o microfone de trás/superior. Melhor para **apontar o celular para quem está falando** (palestra, reunião, pessoa à sua frente).
-- **Bruto** – sinal sem nenhum processamento (se o aparelho suportar).
-- **Comunicação** – liga o cancelamento de ruído e eco do sistema; bom em ambiente barulhento, mas pode “comer” sílabas.
-- **Microfone / entrada** – escolha o mic interno (inferior/traseiro), fone com fio ou microfone **USB-C** (lapela USB-C dá o melhor resultado com orador distante).
-- **Ganho digital** – 1x a 4x, para quem fala longe. O medidor verde mostra o nível: o ideal é ficar no meio.
-- **Redutor de ruído** – supressor de ruído do Android.
-- **Falar tradução** – lê o português em voz alta. Use **com fones**; o app pausa a escuta enquanto fala.
+Áudio: 16 kHz mono, blocos de 100 ms, thread prioritária, filtro passa-altas ~80 Hz, AGC do sistema desligado,
+fim de frase detectado após 0,8 s de silêncio (máx. 15 s por frase).
 
-Internamente: 16 kHz mono, blocos de 100 ms, thread de áudio prioritária, filtro passa-altas de ~80 Hz
-(tira ronco de ar-condicionado, vento e batidas na mesa), AGC do sistema desligado e tela mantida acesa enquanto ouve.
+## Latência esperada no A55
+- Chinês na tela: imediato. Legenda ≈ em português: ~0,5 s.
+- Frase final do HY-MT: ~2–5 s depois de a pessoa terminar a frase (depende do tamanho).
 
-## Limitações honestas
-- O modelo pequeno do Vosk é bom para fala clara em mandarim padrão (Putonghua); sotaques fortes,
-  cantonês ou muito ruído reduzem a precisão.
-- A tradução do ML Kit é literal e passa pelo inglês internamente; serve para acompanhar o sentido, não para texto final.
+## Versões fixadas
+sherpa-onnx 2.0.1 · llama.cpp b12059 · ML Kit Translate 17.0.3 · AGP 8.5.2 · Kotlin 1.9.24 · NDK 27.2

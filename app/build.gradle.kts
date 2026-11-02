@@ -6,24 +6,43 @@ plugins {
 android {
     namespace = "br.jorge.tradutorzh"
     compileSdk = 34
+    ndkVersion = "27.2.12479018"
 
     defaultConfig {
         applicationId = "br.jorge.tradutorzh"
-        minSdk = 26
+        minSdk = 33          // Galaxy A55 vem com Android 14+
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-        // Samsung Galaxy A55 (Exynos 1480) é arm64 — só essa ABI deixa o APK menor
+        versionCode = 2
+        versionName = "2.0"
+        // Galaxy A55 (Exynos 1480) é arm64 — só essa ABI deixa o APK menor
         ndk { abiFilters += listOf("arm64-v8a") }
+        externalNativeBuild {
+            cmake {
+                arguments += listOf("-DCMAKE_BUILD_TYPE=Release")
+                cppFlags += listOf("-O3")
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Assinado com a chave de debug para poder instalar direto no celular
+            // Assinado com a chave de debug para instalar direto no celular
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    // modelos ONNX sem compressão: carregam mais rápido do APK
+    androidResources { noCompress += listOf("onnx") }
+
+    packaging { jniLibs { useLegacyPackaging = false } }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -33,9 +52,8 @@ android {
 }
 
 dependencies {
-    // Reconhecimento de fala offline (mandarim)
-    implementation("com.alphacephei:vosk-android:0.3.47@aar")
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
-    // Tradução offline no aparelho (chinês -> português)
+    // Reconhecimento de fala offline (sherpa-onnx: Zipformer streaming + SenseVoice)
+    implementation(files("libs/sherpa-onnx-2.0.1.aar"))
+    // Legenda instantânea offline (chinês -> português)
     implementation("com.google.mlkit:translate:17.0.3")
 }

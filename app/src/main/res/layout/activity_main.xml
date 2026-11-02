@@ -14,13 +14,60 @@
         android:textColor="#8FA3B5"
         android:textSize="13sp" />
 
-    <Button
-        android:id="@+id/btnDownload"
+    <!-- Instalação única dos pacotes de tradução (somente Wi-Fi) -->
+    <LinearLayout
+        android:id="@+id/panelSetup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:text="@string/download"
-        android:visibility="gone" />
+        android:background="@drawable/live_box"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btnDownload"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/download"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/rowHy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnDownloadHy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="@string/download_hy" />
+
+            <Button
+                android:id="@+id/btnImportHy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/import_hy" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/hyProgress"
+            style="@android:style/Widget.Material.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvSetup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#8FA3B5"
+            android:textSize="12sp" />
+    </LinearLayout>
 
     <!-- Histórico das frases já concluídas -->
     <ScrollView
@@ -141,6 +188,13 @@
                 android:text="@string/tts"
                 android:textColor="#E6EDF3" />
         </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/cbHy"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/use_hy"
+            android:textColor="#E6EDF3" />
     </LinearLayout>
 
     <LinearLayout

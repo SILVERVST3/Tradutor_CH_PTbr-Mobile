@@ -4,9 +4,15 @@ on:
   push:
   workflow_dispatch:
 
+env:
+  SHERPA_VERSION: "2.0.1"
+  LLAMA_TAG: "b12059"
+  ASR_STREAM: "sherpa-onnx-streaming-zipformer-zh-int8-2025-06-30"
+  ASR_FINAL: "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2025-09-09"
+
 jobs:
   build:
-    runs-on: ubuntu-2022
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -19,14 +25,28 @@ jobs:
         with:
           gradle-version: "8.7"
 
-      - name: Embutir modelo de voz em mandarim (Vosk small-cn, ~42 MB)
+      - name: Biblioteca sherpa-onnx (reconhecimento de voz)
         run: |
-          curl -L --retry 3 -o model.zip https://alphacephei.com/vosk/models/vosk-model-small-cn-0.22.zip
-          unzip -q model.zip
-          rm -rf app/src/main/assets/model-cn
+          mkdir -p app/libs
+          curl -fL --retry 3 -o app/libs/sherpa-onnx-${SHERPA_VERSION}.aar \
+            https://github.com/k2-fsa/sherpa-onnx/releases/download/v${SHERPA_VERSION}/sherpa-onnx-${SHERPA_VERSION}.aar
+
+      - name: Modelos de voz em mandarim (embutidos no APK)
+        run: |
           mkdir -p app/src/main/assets
-          mv vosk-model-small-cn-0.22 app/src/main/assets/model-cn
-          uuidgen > app/src/main/assets/model-cn/uuid
+          for m in "$ASR_STREAM" "$ASR_FINAL"; do
+            curl -fL --retry 3 -o m.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/$m.tar.bz2
+            tar xjf m.tar.bz2 && rm m.tar.bz2
+            rm -rf "$m/test_wavs" "$m/README.md"
+            rm -rf "app/src/main/assets/$m"
+            mv "$m" app/src/main/assets/
+          done
+          du -sh app/src/main/assets/*
+
+      - name: llama.cpp (motor do tradutor HY-MT)
+        run: |
+          rm -rf app/src/main/cpp/llama.cpp
+          git clone --depth 1 --branch ${LLAMA_TAG} https://github.com/ggml-org/llama.cpp app/src/main/cpp/llama.cpp
 
       - name: Compilar
         run: gradle assembleRelease --no-daemon --stacktrace
@@ -38,3 +58,4 @@ jobs:
         with:
           name: TradutorZH-PT-apk
           path: TradutorZH-PT.apk
+          compression-level: 0

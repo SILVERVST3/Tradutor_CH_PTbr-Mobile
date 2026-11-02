@@ -3,12 +3,15 @@
     <string name="app_name">Tradutor ZH→PT</string>
     <string name="start">▶ Iniciar</string>
     <string name="stop">■ Parar</string>
-    <string name="settings">Mic</string>
+    <string name="settings">Ajustes</string>
     <string name="copy">Copiar</string>
     <string name="clear">Limpar</string>
-    <string name="download">Baixar pacote de tradução (somente Wi-Fi, uma vez)</string>
+    <string name="download">Baixar legenda rápida (ML Kit, ~60 MB, Wi-Fi)</string>
+    <string name="download_hy">Baixar tradutor HY-MT (1,1 GB, Wi-Fi)</string>
+    <string name="import_hy">Importar .gguf</string>
     <string name="lbl_source">Modo do microfone</string>
     <string name="lbl_device">Microfone / entrada</string>
     <string name="ns">Redutor de ruído</string>
     <string name="tts">Falar tradução</string>
+    <string name="use_hy">Tradução final com HY-MT (qualidade máxima)</string>
 </resources>
