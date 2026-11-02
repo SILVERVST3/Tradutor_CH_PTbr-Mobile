@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tradutor ZH→PT</string>
+    <string name="start">▶ Iniciar</string>
+    <string name="stop">■ Parar</string>
+    <string name="settings">Mic</string>
+    <string name="copy">Copiar</string>
+    <string name="clear">Limpar</string>
+    <string name="download">Baixar pacote de tradução (somente Wi-Fi, uma vez)</string>
+    <string name="lbl_source">Modo do microfone</string>
+    <string name="lbl_device">Microfone / entrada</string>
+    <string name="ns">Redutor de ruído</string>
+    <string name="tts">Falar tradução</string>
+</resources>
